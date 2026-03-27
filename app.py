@@ -1,3 +1,5 @@
+from urllib import response
+
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,6 +15,7 @@ from sqlalchemy import func
 import os
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from flask import make_response
 
 app = Flask(__name__)
 
@@ -360,14 +363,18 @@ def download_attendance():
 
     doc.build(elements)
 
-    buffer.seek(0)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
 
-    return send_file(
-        buffer,
-        as_attachment=True,
-        download_name=f"attendance_{month_name}_{year}.pdf",
-        mimetype="application/pdf"
+    response = make_response(pdf_bytes)
+    response.headers.set("Content-Type", "application/pdf")
+    response.headers.set(
+        "Content-Disposition",
+        "attachment",
+        filename=f"attendance_{month_name}_{year}.pdf"
     )
+
+    return response
 
 
 
