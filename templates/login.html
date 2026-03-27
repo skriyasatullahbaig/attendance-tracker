@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="page-container">
+
+        <h1 class="title">Attendance Tracker</h1>
+        <p class="subtitle">Workforce attendance management made simple</p>
+
+        <div class="login-card">
+            <h2>Welcome Back</h2>
+            <p class="card-subtitle">Sign in to access your attendance dashboard</p>
+            <form method="POST" action="/login">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="form-group">
+        <label>Email</label>
+        <input 
+            type="email" 
+            name="email" 
+            placeholder="you@example.com" 
+            required>
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input 
+            type="password" 
+            name="password" 
+            placeholder="••••••••" 
+            required>
+    </div>
+
+    <button type="submit" class="btn-login">
+        Sign In
+    </button>
+</form>
+
+
+            <p class="signup-text">
+                Don't have an account? <a href="/signup">Sign up</a>
+            </p>
+        </div>
+
+    </div>
+
+</body>
+</html>

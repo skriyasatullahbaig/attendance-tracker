@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Dashboard - Attendance Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h2>Attendance Tracker</h2>
+        <span class="subtitle">Workforce Management</span>
+    </div>
+    <div class="topbar-right">
+        <span class="badge">Worker</span>
+        <span class="username">{{ name }}</span>
+        <a href="/logout" class="logout">Sign Out</a>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1>My Dashboard</h1>
+        <p>View and download your attendance records</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+
+    <div class="stat-card">
+        <h2 class="stat-number blue">{{ total_days }}</h2>
+        <p>Total Work Days</p>
+    </div>
+
+    <div class="stat-card">
+        <h2 class="stat-number dark">{{ full_days }}</h2>
+        <p>Full Days</p>
+    </div>
+
+    <div class="stat-card">
+        <h2 class="stat-number green">{{ extended_days }}</h2>
+        <p>Extended Days</p>
+    </div>
+
+    <div class="stat-card">
+        <h2 class="stat-number orange">{{ half_days }}</h2>
+        <p>Half Days</p>
+    </div>
+
+    <div class="stat-card">
+        <h2 class="stat-number purple">{{ sunday_days }}</h2>
+        <p>Sundays</p>
+    </div>
+
+    <div class="stat-card">
+        <h2 class="stat-number red">{{ absent_days }}</h2>
+        <p>Absent Days</p>
+    </div>
+
+</div>
+
+    <!-- Attendance Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2>My Attendance</h2>
+                <p class="card-subtitle">
+    {{ month_name }} {{ year }} ·
+    {% if record_count == 0 %}
+        No attendance marked
+    {% else %}
+        {{ record_count }} day(s) recorded
+    {% endif %}
+</p>
+
+
+            </div>
+            <div class="card-actions">
+                <form method="GET" action="/worker/dashboard" class="month-form">
+    <select name="month" class="month-dropdown" onchange="this.form.submit()">
+        {% for m_num, m_name in months %}
+            <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>
+                {{ m_name }} {{ year }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+
+
+                <a href="/download_attendance?month={{ selected_month }}&year={{ year }}" class="btn-primary">
+    Download
+</a>
+
+
+            </div>
+        </div>
+
+        <div class="attendance-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Shift</th>
+                <th>Work Days</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+
+        <tbody>
+{% if records %}
+    {% for r in records %}
+    <tr>
+        <td>{{ r.date.strftime("%d-%b-%Y") }}</td>
+        <td>
+{% if r.shift_type == "full" %}
+Full Day
+{% elif r.shift_type == "extended" %}
+Extended
+{% elif r.shift_type == "half" %}
+Half Day
+{% elif r.shift_type == "sunday" %}
+Sunday
+{% elif r.shift_type == "absent" %}
+Absent
+{% endif %}
+</td>
+        <td>{{ r.work_days }}</td>
+        <td>{{ r.notes if r.notes else "-" }}</td>
+    </tr>
+    {% endfor %}
+{% else %}
+<tr>
+    <td colspan="4" style="text-align:center; padding:25px; color:#6b7280;">
+        No attendance marked for this month.
+    </td>
+</tr>
+{% endif %}
+</tbody>
+
+    </table>
+</div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

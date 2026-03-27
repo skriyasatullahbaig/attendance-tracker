@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Attendance Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h2>Attendance Tracker</h2>
+        <span class="subtitle">Workforce Management</span>
+    </div>
+    <div class="topbar-right">
+        <span class="badge">Admin</span>
+        <span class="username">{{ name }}</span>
+        <a href="/logout" class="logout">Sign Out</a>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+    <!-- Page Title -->
+    <div class="page-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage workers and track attendance</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('attendanceTab', this)">Mark Attendance</button>
+        <button class="tab" onclick="openTab('workersTab', this)">Workers</button>
+        <button class="tab" onclick="openTab('recordsTab', this)">Records</button>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- ===================== MARK ATTENDANCE TAB ===================== -->
+    <div class="card tab-content active" id="attendanceTab">
+
+        <h2>Mark Attendance</h2>
+        <p class="card-subtitle">Record worker attendance for a specific date</p>
+
+        <form method="POST" action="/mark_attendance">
+
+            <!-- Date -->
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <!-- Worker -->
+            <div class="form-group">
+                <label>Worker</label>
+                <select name="worker_id" required>
+                    <option value="">Select a worker</option>
+                    {% for worker in workers %}
+                        <option value="{{ worker.id }}">{{ worker.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Shift -->
+            <label class="section-label">Shift Type</label>
+
+            <input type="hidden" name="shift_type" id="shift_type" value="full">
+
+            <div class="shift-options">
+
+    <div class="shift-card active">
+        <h4>Full Day</h4>
+        <p>9 AM – 8 PM</p>
+        <span>1 work day</span>
+    </div>
+
+    <div class="shift-card">
+        <h4>Extended</h4>
+        <p>6 AM – 8 PM</p>
+        <span>1.5 work days</span>
+    </div>
+
+    <div class="shift-card">
+        <h4>Half Day</h4>
+        <p>Half Shift</p>
+        <span>0.5 work day</span>
+    </div>
+
+    <div class="shift-card">
+        <h4>Sunday</h4>
+        <p>Weekend Work</p>
+        <span>1 work day</span>
+    </div>
+
+    <div class="shift-card">
+        <h4>Absent</h4>
+        <p>No Work</p>
+        <span>0 work day</span>
+    </div>
+
+</div>
+
+            <!-- Notes -->
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea name="notes" placeholder="Any additional notes..."></textarea>
+            </div>
+
+            <button class="btn-primary" type="submit">
+                Mark Attendance
+            </button>
+
+        </form>
+    </div>
+
+
+ <!-- ===================== WORKERS TAB ===================== -->
+<div class="tab-content" id="workersTab">
+
+    <div class="table-card">
+
+        <h2>Workers Summary</h2>
+        <p class="card-subtitle">All workers and their total working days</p>
+
+        {% if workers_summary|length == 0 %}
+            <div class="empty-state">
+                No workers available.
+            </div>
+        {% else %}
+
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Worker Name</th>
+                    <th>Email</th>
+                    <th>Total Work Days</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for w in workers_summary %}
+                <tr>
+                    <td>{{ w.name }}</td>
+
+                    <td class="email-text">
+                        {{ w.email }}
+                    </td>
+
+                    <td>
+                        <span class="workday-badge">
+                            {{ w.total_days }} days
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- ===================== RECORDS TAB ===================== -->
+<div class="tab-content" id="recordsTab">
+
+    <div class="table-card">
+
+        <h2>Attendance Records</h2>
+        <p class="card-subtitle">All attendance history</p>
+
+        {% if records|length == 0 %}
+            <div class="empty-state">
+                No attendance records found.
+            </div>
+        {% else %}
+
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Worker</th>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Work Days</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in records %}
+                <tr>
+
+                    <td>{{ r.worker.name }}</td>
+
+                    <td>{{ r.date.strftime('%d %b %Y') }}</td>
+
+                    <td>
+                        {% if r.shift_type == "extended" %}
+                            <span class="extended-badge">Extended</span>
+                        {% else %}
+                            <span class="full-badge">Full Day</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="workday-badge">
+                            {{ r.work_days }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ r.notes or '-' }}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- TAB SWITCHING SCRIPT -->
+<script>
+function openTab(tabId, btn) {
+
+    // hide all tabs
+    const contents = document.querySelectorAll(".tab-content");
+    contents.forEach(c => c.style.display = "none");
+
+    // remove active button
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(t => t.classList.remove("active"));
+
+    // show selected
+    document.getElementById(tabId).style.display = "block";
+    btn.classList.add("active");
+}
+</script>
+
+
+<!-- SHIFT SELECTION SCRIPT -->
+<script>
+const cards = document.querySelectorAll(".shift-card");
+const shiftInput = document.getElementById("shift_type");
+
+cards.forEach(card => {
+    card.addEventListener("click", () => {
+
+        cards.forEach(c => c.classList.remove("active"));
+        card.classList.add("active");
+
+        const text = card.innerText;
+
+        if(text.includes("Extended")){
+            shiftInput.value = "extended";
+        }
+        else if(text.includes("Half")){
+            shiftInput.value = "half";
+        }
+        else if(text.includes("Sunday")){
+            shiftInput.value = "sunday";
+        }
+        else if(text.includes("Absent")){
+            shiftInput.value = "absent";
+        }
+        else{
+            shiftInput.value = "full";
+        }
+    });
+});
+</script>
+
+</body>
+</html>
